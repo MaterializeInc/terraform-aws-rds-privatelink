@@ -15,6 +15,9 @@ output "mz_rds_endpoint_sql" {
 
     -- IMPORTANT: Get the allowed principals, then add them to the VPC endpoint service
 
+    -- Create a secret for the password
+    CREATE SECRET pgpass AS 'YOUR_PG_PASSWORD';
+
     -- Create the connection to the RDS instance
     CREATE CONNECTION pg_conn TO POSTGRES (
         HOST '${data.aws_db_instance.mz_rds_instance.address}',
@@ -35,4 +38,14 @@ output "mz_rds_endpoint_service" {
 # Return the list of subnet IDs for the RDS instance
 output "mz_rds_azs" {
   value = [for s in data.aws_subnet.mz_rds_subnet : s.availability_zone_id]
+}
+
+# Return the database instance details
+output "mz_rds_instance" {
+  value = data.aws_db_instance.mz_rds_instance
+}
+
+# Get the data.dns_a_record_set for the RDS instance
+output "mz_rds_dns" {
+  value = data.dns_a_record_set.rds_ip
 }

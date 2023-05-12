@@ -10,7 +10,7 @@ resource "aws_lb_target_group" "mz_rds_target_group" {
 # Attach a target to the target group
 resource "aws_lb_target_group_attachment" "mz_rds_target_group_attachment" {
   target_group_arn = aws_lb_target_group.mz_rds_target_group.arn
-  target_id        = data.aws_db_instance.mz_rds_instance.address
+  target_id        = data.dns_a_record_set.rds_ip.addrs[0]
 }
 
 # Create a network Load Balancer

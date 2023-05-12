@@ -1,6 +1,13 @@
 # Get the state of the RDS instance using aws_db_instance
 data "aws_db_instance" "mz_rds_instance" {
   db_instance_identifier = var.mz_rds_instance_name
+
+  lifecycle {
+    postcondition {
+      condition     = self.publicly_accessible == false
+      error_message = "The RDS instance needs to be private, but it is public."
+    }
+  }
 }
 
 # Get the VPC details using aws_vpc
@@ -17,3 +24,6 @@ data "aws_subnet" "mz_rds_subnet" {
   id       = each.value
 }
 
+data "dns_a_record_set" "rds_ip" {
+  host = data.aws_db_instance.mz_rds_instance.address
+}
