@@ -1,0 +1,7 @@
+# Provider environment variables
+aws_region = "us-east-1"
+
+# The name of the existing MSK cluster
+mz_rds_instance_name =
+# The VPC ID of the existing MSK cluster
+mz_rds_vpc_id =
