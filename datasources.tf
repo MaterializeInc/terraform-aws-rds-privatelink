@@ -27,3 +27,19 @@ data "aws_subnet" "mz_rds_subnet" {
 data "dns_a_record_set" "rds_ip" {
   host = data.aws_db_instance.mz_rds_instance.address
 }
+
+data "aws_iam_policy_document" "lambda_assume_role_policy" {
+  statement {
+    actions = ["sts:AssumeRole"]
+    principals {
+      type = "Service"
+      identifiers = ["lambda.amazonaws.com"]
+    }
+  }
+}
+
+data "archive_file" "lambda_zip" {
+  type        = "zip"
+  source_file = "lambda_function.py"
+  output_path = "lambda_function.zip"
+}
