@@ -29,8 +29,7 @@ def lambda_handler(event, context):
         current_ip = None
 
     # If the IP addresses don't match, update the target group
-    if current_ip != ip_address:
-        if current_ip is not None:
+    if current_ip and current_ip != ip_address:
             # Deregister the current target
             elbv2_client.deregister_targets(
                 TargetGroupArn=TARGET_GROUP_ARN,
