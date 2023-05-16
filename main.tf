@@ -96,14 +96,14 @@ resource "aws_iam_role_policy" "lambda_execution_role_policy" {
 EOF
 }
 
-resource "aws_cloudwatch_event_rule" "every_five_minutes" {
-  name                = "${substr(var.mz_rds_instance_name, 0, 12)}-every-five-minutes"
-  description         = "Fires every five minutes to check the RDS instance IP address"
-  schedule_expression = "rate(5 minutes)"
+resource "aws_cloudwatch_event_rule" "rds_ip_check_rule" {
+  name                = "${substr(var.mz_rds_instance_name, 0, 12)}-rds-ip-check-rule"
+  description         = "Fires every ${var.schedule_expression} to check the RDS instance IP address"
+  schedule_expression = var.schedule_expression
 }
 
-resource "aws_cloudwatch_event_target" "check_rds_ip_every_five_minutes" {
-  rule      = aws_cloudwatch_event_rule.every_five_minutes.name
+resource "aws_cloudwatch_event_target" "check_rds_ip_event_target" {
+  rule      = aws_cloudwatch_event_rule.rds_ip_check_rule.name
   target_id = "${substr(var.mz_rds_instance_name, 0, 12)}-check-rds-ip"
   arn       = aws_lambda_function.check_rds_ip.arn
 }
@@ -113,5 +113,5 @@ resource "aws_lambda_permission" "allow_cloudwatch_to_call_check_rds_ip" {
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.check_rds_ip.function_name
   principal     = "events.amazonaws.com"
-  source_arn    = aws_cloudwatch_event_rule.every_five_minutes.arn
+  source_arn    = aws_cloudwatch_event_rule.rds_ip_check_rule.arn
 }

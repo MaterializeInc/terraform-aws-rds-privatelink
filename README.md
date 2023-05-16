@@ -42,6 +42,7 @@ cp terraform.tfvars.example terraform.tfvars
 | mz_rds_instance_name | The name of the RDS instance | string | `'my-rds-instance'` | yes |
 | mz_rds_vpc_id | The VPC ID of the RDS instance | string | `'vpc-1234567890abcdef0'` | yes |
 | mz_acceptance_required | Whether or not to require manual acceptance of new connections | bool | `true` | no |
+| schedule_expression | [The scheduling expression](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_event_rule#schedule_expression). For example, `cron(0 20 * * ? *)` | string | `'rate(5 minutes)'` | no |
 
 ### Apply the Terraform Module
 

@@ -23,3 +23,10 @@ variable "mz_acceptance_required" {
   default     = false
   type        = bool
 }
+
+# Schedule expression for how often to run the Lambda function
+variable "schedule_expression" {
+  description = "Schedule expression for how often to run the Lambda function"
+  type        = string
+  default     = "rate(5 minutes)"
+}
