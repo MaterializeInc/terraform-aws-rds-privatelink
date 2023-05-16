@@ -46,7 +46,7 @@ def lambda_handler(event, context):
             Targets=[
                 {
                     'Id': ip_address,
-                    'Port': rds_port  # Replace with your RDS instance port
+                    'Port': rds_port
                 },
             ]
         )
