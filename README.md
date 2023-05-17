@@ -10,6 +10,10 @@ The module creates the following resources:
 - Network Load Balancer for the RDS instance
 - TCP listener for the NLB to forward traffic to the target group
 - A VPC endpoint service for your RDS instance
+- Lambda Function to check and update the IP address of the RDS instance in the NLB target group
+- IAM Role and Policy to give the Lambda function necessary permissions
+- Event Source Mapping, Event Rule, and Target: Triggers the Lambda function every _n_ minutes
+- Lambda Permission: Allows the event to invoke the Lambda function
 
 ## Important Remarks
 
