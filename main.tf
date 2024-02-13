@@ -21,6 +21,7 @@ resource "aws_lb" "mz_rds_lb" {
   name               = "mz-rds-${substr(var.mz_rds_instance_name, 0, 12)}-lb"
   internal           = true
   load_balancer_type = "network"
+  enable_cross_zone_load_balancing = var.cross_zone_load_balancing
   subnets            = values(data.aws_subnet.mz_rds_subnet)[*].id
   tags = {
     Name = "mz-rds-lb"
