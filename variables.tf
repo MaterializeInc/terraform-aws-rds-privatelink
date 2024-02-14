@@ -30,3 +30,10 @@ variable "schedule_expression" {
   type        = string
   default     = "rate(5 minutes)"
 }
+
+# Enable cross zone load balancing
+variable "cross_zone_load_balancing" {
+  description = "Enables cross zone load balancing for the NLB"
+  type        = bool
+  default     = false
+}
