@@ -40,16 +40,16 @@ def lambda_handler(event, context):
                 ]
             )
 
-        # Register the new target
-        elbv2_client.register_targets(
-            TargetGroupArn=TARGET_GROUP_ARN,
-            Targets=[
-                {
-                    'Id': ip_address,
-                    'Port': rds_port
-                },
-            ]
-        )
+            # Register the new target
+            elbv2_client.register_targets(
+                TargetGroupArn=TARGET_GROUP_ARN,
+                Targets=[
+                    {
+                        'Id': ip_address,
+                        'Port': rds_port
+                    },
+                ]
+            )
 
     return {
         'statusCode': 200,

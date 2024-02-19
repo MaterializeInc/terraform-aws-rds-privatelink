@@ -18,11 +18,11 @@ resource "aws_lb_target_group_attachment" "mz_rds_target_group_attachment" {
 
 # Create a network Load Balancer
 resource "aws_lb" "mz_rds_lb" {
-  name               = "mz-rds-${substr(var.mz_rds_instance_name, 0, 12)}-lb"
-  internal           = true
-  load_balancer_type = "network"
+  name                             = "mz-rds-${substr(var.mz_rds_instance_name, 0, 12)}-lb"
+  internal                         = true
+  load_balancer_type               = "network"
+  subnets                          = values(data.aws_subnet.mz_rds_subnet)[*].id
   enable_cross_zone_load_balancing = var.cross_zone_load_balancing
-  subnets            = values(data.aws_subnet.mz_rds_subnet)[*].id
   tags = {
     Name = "mz-rds-lb"
   }
@@ -59,7 +59,7 @@ resource "aws_lambda_function" "check_rds_ip" {
   function_name = "${substr(var.mz_rds_instance_name, 0, 12)}-check-rds-ip"
   role          = aws_iam_role.lambda_execution_role.arn
   handler       = "lambda_function.lambda_handler"
-  runtime       = "python3.9"
+  runtime       = "python3.11"
 
   filename = data.archive_file.lambda_zip.output_path
 
