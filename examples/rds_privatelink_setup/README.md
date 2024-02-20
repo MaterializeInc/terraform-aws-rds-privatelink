@@ -44,6 +44,18 @@ This example demonstrates how to create a new Amazon RDS Postgres instance and c
 
    You'll need to confirm the action by typing `yes` when prompted.
 
+1. Once the resources have been created, you can test the module with:
+
+    ```hcl
+    module "materialize_privatelink_rds" {
+        source = "../.."
+
+        mz_rds_instance_name = var.mz_rds_instance_name
+        mz_rds_vpc_id        = module.rds_postgres.vpc.vpc_id
+        aws_region           = var.aws_region
+    }
+    ```
+
 1. **Follow the Output Instructions**
 
    After Terraform successfully applies the configuration, it will output instructions for configuring the PrivateLink endpoint and the Postgres connection in Materialize. Follow these instructions to complete the setup.
