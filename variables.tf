@@ -7,9 +7,20 @@ variable "aws_region" {
 
 # List of variables that the user would need to change
 
-# The name of the existing RDS instance
-variable "mz_rds_instance_name" {
-  description = "The name of the existing RDS instance"
+# The names of the existing RDS instances
+variable "mz_rds_instance_details" {
+  description = "List of objects containing RDS instance names and their corresponding listener ports"
+  type = list(object({
+    name         = string
+    listener_port = number
+  }))
+}
+
+# The name of the NLB to be created
+variable "mz_nlb_name" {
+  description = "The name of the NLB to be created"
+  type        = string
+  default     = "mz-rds-lb"
 }
 
 # The VPC ID of the existing RDS instance

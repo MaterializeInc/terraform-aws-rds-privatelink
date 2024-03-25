@@ -1,7 +1,10 @@
 # Provider environment variables
 aws_region = "us-east-1"
 
-# The name of the existing MSK cluster
-mz_rds_instance_name =
+# The name of the existing RDS instances
+mz_rds_instance_details = [
+  { name = "instance1", listener_port = 5001 },
+  { name = "instance2", listener_port = 5002 }
+]
 # The VPC ID of the existing MSK cluster
 mz_rds_vpc_id =
