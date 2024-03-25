@@ -5,7 +5,7 @@ terraform {
       version = "~> 5.0"
     }
     dns = {
-      source = "hashicorp/dns"
+      source  = "hashicorp/dns"
       version = "3.3.2"
     }
   }
