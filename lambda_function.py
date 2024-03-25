@@ -1,57 +1,44 @@
 import boto3
 import socket
 import os
+import json
 
-# Define the clients at the top of your function
+# Initialize clients
 elbv2_client = boto3.client('elbv2')
 rds_client = boto3.client('rds')
 
-RDS_IDENTIFIER = os.environ['RDS_IDENTIFIER']  # RDS instance identifier
-TARGET_GROUP_ARN = os.environ['TARGET_GROUP_ARN']  # Target Group ARN
-
+# Load RDS details from environment variables
+RDS_DETAILS = json.loads(os.environ['RDS_DETAILS'])
 
 def lambda_handler(event, context):
-    # Retrieve the current IP address of the RDS instance
-    rds_instances = rds_client.describe_db_instances(
-        DBInstanceIdentifier=RDS_IDENTIFIER)
-    rds_endpoint = rds_instances['DBInstances'][0]['Endpoint']['Address']
-    ip_address = socket.gethostbyname(rds_endpoint)
-    rds_port = rds_instances['DBInstances'][0]['Endpoint']['Port']
+    update_messages = []
 
-    # Retrieve the existing target of the target group
-    targets = elbv2_client.describe_target_health(
-        TargetGroupArn=TARGET_GROUP_ARN)
+    for rds_identifier, details in RDS_DETAILS.items():
+        # Retrieve the current IP address of the RDS instance
+        rds_instances = rds_client.describe_db_instances(DBInstanceIdentifier=rds_identifier)
+        rds_endpoint = rds_instances['DBInstances'][0]['Endpoint']['Address']
+        ip_address = socket.gethostbyname(rds_endpoint)
 
-    # Get the current IP address in the target group
-    if targets['TargetHealthDescriptions']:
-        current_ip = targets['TargetHealthDescriptions'][0]['Target']['Id']
-    else:
-        current_ip = None
+        # Retrieve the existing target of the target group
+        target_group_arn = details['target_group_arn']
+        targets = elbv2_client.describe_target_health(TargetGroupArn=target_group_arn)
 
-    # If the IP addresses don't match, update the target group
-    if current_ip and current_ip != ip_address:
-            # Deregister the current target
-            elbv2_client.deregister_targets(
-                TargetGroupArn=TARGET_GROUP_ARN,
-                Targets=[
-                    {
-                        'Id': current_ip
-                    },
-                ]
-            )
+        # Check and update the target group
+        current_ip = targets['TargetHealthDescriptions'][0]['Target']['Id'] if targets['TargetHealthDescriptions'] else None
+        if current_ip != ip_address:
+            if current_ip:
+                # Deregister the current target
+                elbv2_client.deregister_targets(TargetGroupArn=target_group_arn, Targets=[{'Id': current_ip}])
 
             # Register the new target
-            elbv2_client.register_targets(
-                TargetGroupArn=TARGET_GROUP_ARN,
-                Targets=[
-                    {
-                        'Id': ip_address,
-                        'Port': rds_port
-                    },
-                ]
-            )
+            elbv2_client.register_targets(TargetGroupArn=target_group_arn, Targets=[{'Id': ip_address, 'Port': details['port']}])
+            message = f'Target group {target_group_arn} updated. New target IP: {ip_address}'
+        else:
+            message = f'Target group {target_group_arn} already up to date. Current target IP: {ip_address}'
+
+        update_messages.append(message)
 
     return {
         'statusCode': 200,
-        'body': f'Target group updated. Current target IP: {ip_address}'
+        'body': json.dumps(update_messages)
     }
