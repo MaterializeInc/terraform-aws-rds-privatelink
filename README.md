@@ -17,13 +17,15 @@ The module creates the following resources:
 
 ## Important Remarks
 
-> **Note**
+> [!NOTE]
 > The RDS instance needs to be private. If your RDS instance is public, there is no need to use PrivateLink.
+
+> [!NOTE]
+> When using Aurora, the RDS instance needs to be a **writer** instance as the reader instances will not work.
 
 - The RDS instance must be in the same VPC as the PrivateLink endpoint.
 - Review this module with your Cloud Security team to ensure that it meets your security requirements.
-- When using Aurora, the RDS instance needs to be a writer instance as the reader instances will not work.
-- Finally, after the Terraform module has been applied, you will need to make sure that the Target Groups heatlth checks are passing. As the NLB does not have security groups, you will need to make sure that the NLB is able to reach the RDS instance by allowing the subnet CIDR blocks in the security groups of the RDS instance.
+- Finally, after the Terraform module has been applied, you will need to make sure that the Target Groups health checks are passing. As the NLB does not have security groups, you will need to make sure that the NLB is able to reach the RDS instance by allowing the subnet CIDR blocks in the security groups of the RDS instance.
 
 To override the default AWS provider variables, you can export the following environment variables:
 
