@@ -14,6 +14,7 @@ def update_target_registration(rds_identifier, details):
     try:
         # Retrieve the current IP address of the RDS instance
         rds_instances = rds_client.describe_db_instances(DBInstanceIdentifier=rds_identifier)
+        rds_port = rds_instances['DBInstances'][0]['Endpoint']['Port']
         if not rds_instances['DBInstances']:
             raise Exception(f"No instances found for {rds_identifier}")
 
@@ -32,10 +33,10 @@ def update_target_registration(rds_identifier, details):
                 elbv2_client.deregister_targets(TargetGroupArn=target_group_arn, Targets=[{'Id': current_ip}])
 
             # Register the new target
-            elbv2_client.register_targets(TargetGroupArn=target_group_arn, Targets=[{'Id': ip_address, 'Port': details['port']}])
+            elbv2_client.register_targets(TargetGroupArn=target_group_arn, Targets=[{'Id': ip_address, 'Port': rds_port}])
             message = f"Target group {target_group_arn} updated. New target IP: {ip_address}"
         else:
-            message = f"Target group {target_group_arn} already up to date. Current target IP: {ip_address}"
+            message = f"Target group {target_group_arn} already up to date. Current target IP: {ip_address} and Port: {rds_port}"
 
         return {'success': True, 'message': message}
     except Exception as e:
