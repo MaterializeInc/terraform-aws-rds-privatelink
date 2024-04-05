@@ -9,7 +9,7 @@ variable "aws_region" {
 
 # The names of the existing RDS instances
 variable "mz_rds_instance_details" {
-  description = "List of objects containing RDS instance names and their corresponding listener ports"
+  description = "List of objects containing RDS instance names and their corresponding unique listener ports"
   type = list(object({
     name         = string
     listener_port = number

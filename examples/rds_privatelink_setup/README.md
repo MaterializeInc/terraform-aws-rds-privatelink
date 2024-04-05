@@ -46,6 +46,9 @@ This example demonstrates how to create a new Amazon RDS Postgres instance and c
 
 1. Once the resources have been created, you can test the module with:
 
+   > [!NOTE]
+   > The module requires that each RDS instance has a **unique** listener port.
+
     ```hcl
     module "materialize_privatelink_rds" {
         source = "../.."

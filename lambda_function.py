@@ -10,12 +10,13 @@ rds_client = boto3.client('rds')
 # Load RDS details from environment variables
 RDS_DETAILS = json.loads(os.environ['RDS_DETAILS'])
 
-def lambda_handler(event, context):
-    update_messages = []
-
-    for rds_identifier, details in RDS_DETAILS.items():
+def update_target_registration(rds_identifier, details):
+    try:
         # Retrieve the current IP address of the RDS instance
         rds_instances = rds_client.describe_db_instances(DBInstanceIdentifier=rds_identifier)
+        if not rds_instances['DBInstances']:
+            raise Exception(f"No instances found for {rds_identifier}")
+
         rds_endpoint = rds_instances['DBInstances'][0]['Endpoint']['Address']
         ip_address = socket.gethostbyname(rds_endpoint)
 
@@ -32,11 +33,20 @@ def lambda_handler(event, context):
 
             # Register the new target
             elbv2_client.register_targets(TargetGroupArn=target_group_arn, Targets=[{'Id': ip_address, 'Port': details['port']}])
-            message = f'Target group {target_group_arn} updated. New target IP: {ip_address}'
+            message = f"Target group {target_group_arn} updated. New target IP: {ip_address}"
         else:
-            message = f'Target group {target_group_arn} already up to date. Current target IP: {ip_address}'
+            message = f"Target group {target_group_arn} already up to date. Current target IP: {ip_address}"
 
-        update_messages.append(message)
+        return {'success': True, 'message': message}
+    except Exception as e:
+        return {'success': False, 'message': f"Failed to update targets for {rds_identifier} with error: {e}"}
+
+def lambda_handler(event, context):
+    update_messages = []
+
+    for rds_identifier, details in RDS_DETAILS.items():
+        result = update_target_registration(rds_identifier, details)
+        update_messages.append(result['message'])
 
     return {
         'statusCode': 200,
