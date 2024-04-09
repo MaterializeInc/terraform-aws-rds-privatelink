@@ -44,12 +44,17 @@ def update_target_registration(rds_identifier, details):
 
 def lambda_handler(event, context):
     update_messages = []
+    all_success = True
 
     for rds_identifier, details in RDS_DETAILS.items():
         result = update_target_registration(rds_identifier, details)
         update_messages.append(result['message'])
+        if not result['success']:
+            all_success = False
+
+    status_code = 200 if all_success else 500
 
     return {
-        'statusCode': 200,
+        'statusCode': status_code,
         'body': json.dumps(update_messages)
     }
