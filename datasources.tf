@@ -7,7 +7,7 @@ data "aws_db_instance" "mz_rds_instance" {
   lifecycle {
     postcondition {
       condition     = self.publicly_accessible == false && self.replicate_source_db == ""
-        error_message = "The RDS instance must be private and a writer instance."
+      error_message = "The RDS instance must be private and a writer instance."
     }
   }
 }

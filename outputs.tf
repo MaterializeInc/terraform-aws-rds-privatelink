@@ -18,7 +18,7 @@ EOF
 
 # Generate SQL queries to create the PostgreSQL connections using the listener port
 output "mz_rds_postgres_connection_sql" {
-  value = {for inst in var.mz_rds_instance_details : inst.name => <<EOF
+  value = { for inst in var.mz_rds_instance_details : inst.name => <<EOF
     -- Create a secret for the password for ${inst.name}
     CREATE SECRET ${inst.name}_pgpass AS 'YOUR_PG_PASSWORD_FOR_${inst.name}';
 
@@ -48,10 +48,10 @@ output "mz_rds_azs" {
 # Return the database instance details for each RDS instance
 # Return the database instance details for each RDS instance
 output "mz_rds_instance" {
-  value = {for inst in var.mz_rds_instance_details : inst.name => data.aws_db_instance.mz_rds_instance[inst.name]}
+  value = { for inst in var.mz_rds_instance_details : inst.name => data.aws_db_instance.mz_rds_instance[inst.name] }
 }
 
 # Get the data.dns_a_record_set for each RDS instance
 output "mz_rds_dns" {
-  value = {for inst in var.mz_rds_instance_details : inst.name => data.dns_a_record_set.rds_ip[inst.name]}
+  value = { for inst in var.mz_rds_instance_details : inst.name => data.dns_a_record_set.rds_ip[inst.name] }
 }
