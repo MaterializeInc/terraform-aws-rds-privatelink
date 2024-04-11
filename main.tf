@@ -71,9 +71,11 @@ resource "aws_lambda_function" "check_rds_ip" {
 
   filename = data.archive_file.lambda_zip.output_path
 
+  source_code_hash = data.archive_file.lambda_zip.output_base64sha256
+
   environment {
     variables = {
-      RDS_DETAILS = jsonencode({for inst in var.mz_rds_instance_details : inst.name => {port = inst.listener_port, target_group_arn = aws_lb_target_group.mz_rds_target_group[inst.name].arn}})
+      RDS_DETAILS = jsonencode({ for inst in var.mz_rds_instance_details : inst.name => { port = inst.listener_port, target_group_arn = aws_lb_target_group.mz_rds_target_group[inst.name].arn } })
     }
   }
 }
