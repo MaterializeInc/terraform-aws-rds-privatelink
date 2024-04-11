@@ -1,5 +1,6 @@
-# Print the SQL query to create the RDS endpoint in the Materialize:
-output "mz_rds_endpoint_sql" {
+# Generate SQL queries to create the RDS endpoints in Materialize for each RDS instance
+# Generate SQL query to create the private link endpoint in Materialize just once
+output "mz_rds_private_link_endpoint_sql" {
   value = <<EOF
     -- Create the private link endpoint in Materialize
     CREATE CONNECTION privatelink_svc TO AWS PRIVATELINK (
@@ -12,22 +13,26 @@ output "mz_rds_endpoint_sql" {
     FROM mz_aws_privatelink_connections plc
     JOIN mz_connections c ON plc.id = c.id
     WHERE c.name = 'privatelink_svc';
+EOF
+}
 
-    -- IMPORTANT: Get the allowed principals, then add them to the VPC endpoint service
+# Generate SQL queries to create the PostgreSQL connections using the listener port
+output "mz_rds_postgres_connection_sql" {
+  value = { for inst in var.mz_rds_instance_details : inst.name => <<EOF
+    -- Create a secret for the password for ${inst.name}
+    CREATE SECRET ${inst.name}_pgpass AS 'YOUR_PG_PASSWORD_FOR_${inst.name}';
 
-    -- Create a secret for the password
-    CREATE SECRET pgpass AS 'YOUR_PG_PASSWORD';
-
-    -- Create the connection to the RDS instance
-    CREATE CONNECTION pg_conn TO POSTGRES (
-        HOST '${data.aws_db_instance.mz_rds_instance.address}',
-        PORT ${data.aws_db_instance.mz_rds_instance.port},
+    -- Create the connection to the RDS instance using the listener port
+    CREATE CONNECTION ${inst.name}_pg_conn TO POSTGRES (
+        HOST '${data.aws_db_instance.mz_rds_instance[inst.name].address}',
+        PORT ${inst.listener_port},
         DATABASE postgres,
         USER postgres,
-        PASSWORD SECRET pgpass,
+        PASSWORD SECRET ${inst.name}_pgpass,
         AWS PRIVATELINK privatelink_svc
     );
-    EOF
+EOF
+  }
 }
 
 # Return the aws_vpc_endpoint_service resource for the RDS endpoint service including the service name and ID
@@ -35,17 +40,18 @@ output "mz_rds_endpoint_service" {
   value = aws_vpc_endpoint_service.mz_rds_lb_endpoint_service
 }
 
-# Return the list of subnet IDs for the RDS instance
+# Return the list of subnet IDs for the RDS instances
 output "mz_rds_azs" {
   value = [for s in data.aws_subnet.mz_rds_subnet : s.availability_zone_id]
 }
 
-# Return the database instance details
+# Return the database instance details for each RDS instance
+# Return the database instance details for each RDS instance
 output "mz_rds_instance" {
-  value = data.aws_db_instance.mz_rds_instance
+  value = { for inst in var.mz_rds_instance_details : inst.name => data.aws_db_instance.mz_rds_instance[inst.name] }
 }
 
-# Get the data.dns_a_record_set for the RDS instance
+# Get the data.dns_a_record_set for each RDS instance
 output "mz_rds_dns" {
-  value = data.dns_a_record_set.rds_ip
+  value = { for inst in var.mz_rds_instance_details : inst.name => data.dns_a_record_set.rds_ip[inst.name] }
 }

@@ -1,11 +1,13 @@
-# Get the state of the RDS instance using aws_db_instance
+# Get the state of the RDS instances using aws_db_instance
 data "aws_db_instance" "mz_rds_instance" {
-  db_instance_identifier = var.mz_rds_instance_name
+  for_each = { for inst in var.mz_rds_instance_details : inst.name => inst }
+
+  db_instance_identifier = each.key
 
   lifecycle {
     postcondition {
-      condition     = self.publicly_accessible == false
-      error_message = "The RDS instance needs to be private, but it is public."
+      condition     = self.publicly_accessible == false && self.replicate_source_db == ""
+      error_message = "The RDS instance must be private and a writer instance."
     }
   }
 }
@@ -16,16 +18,19 @@ data "aws_vpc" "mz_rds_vpc" {
 }
 
 data "aws_db_subnet_group" "mz_rds_subnet_group" {
-  name = data.aws_db_instance.mz_rds_instance.db_subnet_group
+  for_each = { for inst in var.mz_rds_instance_details : inst.name => inst }
+  name     = data.aws_db_instance.mz_rds_instance[each.key].db_subnet_group
 }
 
 data "aws_subnet" "mz_rds_subnet" {
-  for_each = toset(data.aws_db_subnet_group.mz_rds_subnet_group.subnet_ids)
-  id       = each.value
+  for_each = toset(flatten([for inst in var.mz_rds_instance_details : data.aws_db_subnet_group.mz_rds_subnet_group[inst.name].subnet_ids]))
+
+  id = each.value
 }
 
 data "dns_a_record_set" "rds_ip" {
-  host = data.aws_db_instance.mz_rds_instance.address
+  for_each = { for inst in var.mz_rds_instance_details : inst.name => inst }
+  host     = data.aws_db_instance.mz_rds_instance[each.key].address
 }
 
 data "aws_iam_policy_document" "lambda_assume_role_policy" {

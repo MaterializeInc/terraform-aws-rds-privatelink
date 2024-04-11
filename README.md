@@ -17,12 +17,15 @@ The module creates the following resources:
 
 ## Important Remarks
 
-> **Note**
+> [!NOTE]
 > The RDS instance needs to be private. If your RDS instance is public, there is no need to use PrivateLink.
+
+> [!NOTE]
+> When using Aurora, the RDS instance needs to be a **writer** instance as the reader instances will not work.
 
 - The RDS instance must be in the same VPC as the PrivateLink endpoint.
 - Review this module with your Cloud Security team to ensure that it meets your security requirements.
-- Finally, after the Terraform module has been applied, you will need to make sure that the Target Groups heatlth checks are passing. As the NLB does not have security groups, you will need to make sure that the NLB is able to reach the RDS instance by allowing the subnet CIDR blocks in the security groups of the RDS instance.
+- Finally, after the Terraform module has been applied, you will need to make sure that the Target Groups health checks are passing. As the NLB does not have security groups, you will need to make sure that the NLB is able to reach the RDS instance by allowing the subnet CIDR blocks in the security groups of the RDS instance.
 
 To override the default AWS provider variables, you can export the following environment variables:
 
@@ -43,7 +46,7 @@ cp terraform.tfvars.example terraform.tfvars
 
 | Name | Description | Type | Example | Required |
 |------|-------------|:----:|:-----:|:-----:|
-| mz_rds_instance_name | The name of the RDS instance | string | `'my-rds-instance'` | yes |
+| mz_rds_instance_names | The name of the RDS instances | list | `{ name = "instance1", listener_port = 5001 }` | yes |
 | mz_rds_vpc_id | The VPC ID of the RDS instance | string | `'vpc-1234567890abcdef0'` | yes |
 | mz_acceptance_required | Whether or not to require manual acceptance of new connections | bool | `true` | no |
 | schedule_expression | [The scheduling expression](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_event_rule#schedule_expression). For example, `cron(0 20 * * ? *)` | string | `'rate(5 minutes)'` | no |
