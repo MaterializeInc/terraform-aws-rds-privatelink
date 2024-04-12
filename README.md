@@ -1,6 +1,6 @@
 # Materialize + PrivateLink + RDS
 
-> **Warning**
+> [!WARNING]
 > This is provided on a best-effort basis and Materialize cannot offer support for this module
 
 This repository contains a Terraform module that configures a PrivateLink endpoint for an existing Amazon RDS Postgres database to connect to Materialize.
@@ -62,34 +62,45 @@ terraform apply
 
 After the Terraform module has been applied, you will see the following output.
 
-You can follow the instructions in the output to configure the PrivateLink endpoint and the Postgres connection in Materialize:
+You can follow the instructions in the output to configure the PrivateLink endpoint and the Postgres connections in Materialize.
+
+First, you will need to create the PrivateLink endpoint in Materialize:
 
 ```sql
-  - mz_rds_endpoint_sql             = <<-EOT
-            -- Create the private link endpoint in Materialize
-            CREATE CONNECTION privatelink_svc TO AWS PRIVATELINK (
-                SERVICE NAME 'com.amazonaws.vpce.us-east-1.vpce-svc-1234567890abcdef0',
-                AVAILABILITY ZONES ("use1-az1", "use1-az2")
-            );
+mz_rds_private_link_endpoint_sql = <<EOT
+    -- Create the private link endpoint in Materialize
+    CREATE CONNECTION privatelink_svc TO AWS PRIVATELINK (
+        SERVICE NAME 'com.amazonaws.vpce.us-east-1.vpce-svc-1234567890abcdef0',
+        AVAILABILITY ZONES ("use1-az1", "use1-az2")
+    );
 
-            -- Get the allowed principals for the VPC endpoint service
-            SELECT principal
-            FROM mz_aws_privatelink_connections plc
-            JOIN mz_connections c ON plc.id = c.id
-            WHERE c.name = 'privatelink_svc';
+    -- Get the allowed principals for the VPC endpoint service
+    SELECT principal
+        FROM mz_aws_privatelink_connections plc
+        JOIN mz_connections c ON plc.id = c.id
+        WHERE c.name = 'privatelink_svc';
 
-            -- IMPORTANT: Get the allowed principals, then add them to the VPC endpoint service
+EOT
+```
 
-            -- Create the connection to the RDS instance
-            CREATE CONNECTION pg_connection TO POSTGRES (
-                HOST 'instance.foo000.us-west-1.rds.amazonaws.com',
-                PORT 5432,
-                DATABASE postgres,
-                USER postgres,
-                PASSWORD SECRET pgpass,
-                AWS PRIVATELINK privatelink_svc
-            );
-    EOT
+After that, you will need to create the Postgres connections in Materialize, if you have multiple RDS instances, you will see multiple SQL statements:
+
+```sql
+mz_rds_postgres_connection_sql   = {
+    rds-instance-name = <<-EOT
+          -- Create a secret for the password for rds-instance-name
+              CREATE SECRET rds-instance-name_pgpass AS 'YOUR_PG_PASSWORD_FOR_rds-instance-name';
+              -- Create the connection to the RDS instance using the listener port
+              CREATE CONNECTION rds-instance-name_pg_conn TO POSTGRES (
+                  HOST 'rds-instance-name.ctthmav6dsti.us-east-1.rds.amazonaws.com',
+                  PORT 5001,
+                  DATABASE postgres,
+                  USER postgres,
+                  PASSWORD SECRET rds-instance-name_pgpass,
+                  AWS PRIVATELINK privatelink_svc
+              );
+      EOT
+}
 ```
 
 ### Output details: Configure Materialize
@@ -106,6 +117,8 @@ CREATE CONNECTION privatelink_svc TO AWS PRIVATELINK (
     );
 ```
 
+> Change the `privatelink_svc` to the name of the connection you want to use.
+
 - Get the allowed principals for the VPC endpoint service
 
 ```sql
@@ -117,7 +130,7 @@ SELECT principal
 
 - Add the allowed principals to the Endpoint Service configuration in the AWS console
 
-- Finally, run the last SQL statement from the output of the `terraform apply` command to create the Postgres connection which will use the PrivateLink endpoint, example:
+- Finally, run the last SQL statement from the output of the `terraform apply` command to create the Postgres connection which will use the PrivateLink endpoint. If you have multiple RDS instances, you will see multiple SQL statements:
 
 ```sql
 -- Create the connection to the RDS instance
