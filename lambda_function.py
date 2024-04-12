@@ -17,11 +17,12 @@ RDS_DETAILS = json.loads(os.environ['RDS_DETAILS'])
 
 def update_target_registration(rds_identifier, details):
     try:
-        logger.info(f"Updating target registration for {rds_identifier}")
+        logger.info(f"Checking target registration for {rds_identifier}")
         # Retrieve the current IP address of the RDS instance
         rds_instances = rds_client.describe_db_instances(DBInstanceIdentifier=rds_identifier)
         rds_port = rds_instances['DBInstances'][0]['Endpoint']['Port']
         if not rds_instances['DBInstances']:
+            logger.error(f"No instances found for {rds_identifier}")
             raise Exception(f"No instances found for {rds_identifier}")
 
         rds_endpoint = rds_instances['DBInstances'][0]['Endpoint']['Address']
