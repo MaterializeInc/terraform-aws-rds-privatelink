@@ -1,8 +1,9 @@
 # Generate SQL queries to create the RDS endpoints in Materialize for each RDS instance
-# Generate SQL query to create the private link endpoint in Materialize just once
+# Generate SQL query to create the PrivateLink endpoint in Materialize just once
 output "mz_rds_private_link_endpoint_sql" {
+  description = "SQL query to create the PrivateLink endpoint in Materialize. Run this query once after creating the VPC endpoint service."
   value = <<EOF
-    -- Create the private link endpoint in Materialize
+    -- Create the PrivateLink endpoint in Materialize
     CREATE CONNECTION privatelink_svc TO AWS PRIVATELINK (
         SERVICE NAME '${aws_vpc_endpoint_service.mz_rds_lb_endpoint_service.service_name}',
         AVAILABILITY ZONES (${join(", ", [for s in data.aws_subnet.mz_rds_subnet : format("%q", s.availability_zone_id)])})
@@ -18,6 +19,7 @@ EOF
 
 # Generate SQL queries to create the PostgreSQL connections using the listener port
 output "mz_rds_postgres_connection_sql" {
+  description = "SQL queries to create the PostgreSQL connections using the listener port. Run these queries after creating the VPC endpoint service. If you have multiple RDS instances, run these queries for each instance."
   value = { for inst in var.mz_rds_instance_details : inst.name => <<EOF
     -- Create a secret for the password for ${inst.name}
     CREATE SECRET ${inst.name}_pgpass AS 'YOUR_PG_PASSWORD_FOR_${inst.name}';

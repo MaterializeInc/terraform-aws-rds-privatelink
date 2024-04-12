@@ -62,7 +62,9 @@ terraform apply
 
 After the Terraform module has been applied, you will see the following output.
 
-You can follow the instructions in the output to configure the PrivateLink endpoint and the Postgres connections in Materialize:
+You can follow the instructions in the output to configure the PrivateLink endpoint and the Postgres connections in Materialize.
+
+First, you will need to create the PrivateLink endpoint in Materialize:
 
 ```sql
 mz_rds_private_link_endpoint_sql = <<EOT
@@ -79,7 +81,11 @@ mz_rds_private_link_endpoint_sql = <<EOT
         WHERE c.name = 'privatelink_svc';
 
 EOT
+```
 
+After that, you will need to create the Postgres connections in Materialize, if you have multiple RDS instances, you will see multiple SQL statements:
+
+```sql
 mz_rds_postgres_connection_sql   = {
     rds-instance-name = <<-EOT
           -- Create a secret for the password for rds-instance-name
@@ -111,6 +117,8 @@ CREATE CONNECTION privatelink_svc TO AWS PRIVATELINK (
     );
 ```
 
+> Change the `privatelink_svc` to the name of the connection you want to use.
+
 - Get the allowed principals for the VPC endpoint service
 
 ```sql
@@ -122,7 +130,7 @@ SELECT principal
 
 - Add the allowed principals to the Endpoint Service configuration in the AWS console
 
-- Finally, run the last SQL statement from the output of the `terraform apply` command to create the Postgres connection which will use the PrivateLink endpoint, example:
+- Finally, run the last SQL statement from the output of the `terraform apply` command to create the Postgres connection which will use the PrivateLink endpoint. If you have multiple RDS instances, you will see multiple SQL statements:
 
 ```sql
 -- Create the connection to the RDS instance
