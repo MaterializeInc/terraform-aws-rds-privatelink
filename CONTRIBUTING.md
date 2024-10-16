@@ -20,7 +20,7 @@ To test the module manually, follow these steps:
 1. After the resources have been created, go to the Target Groups in the AWS console and make sure that the health checks are passing. If they are not, you will need to add the subnet CIDR blocks of your RDS instance to the security groups of your RDS instance. For more information, see [this AWS documentation](https://docs.aws.amazon.com/elasticloadbalancing/latest/network/load-balancer-troubleshooting.html).
 1. Next, run the queries in the output to create the connection in Materialize.
 1. Finally, in your AWS console, under the Endpoint Service that was created, approve the connection request from the Materialize instance and check that the connection is active.
-1. You can now create a Postgres/MySQL source in Materialize using the connection name from the output.
+1. You can now create a PostgreSQL or MySQL source in Materialize using the connection name from the output.
 1. Finally, drop the connection in Materialize and run `terraform destroy` to clean up the resources.
 
 ## Cutting a new release
