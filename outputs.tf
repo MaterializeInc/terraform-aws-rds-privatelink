@@ -16,20 +16,25 @@ output "mz_rds_private_link_endpoint_sql" {
 EOF
 }
 
-# Generates SQL queries to create the PostgreSQL connections using the listener port
-output "mz_rds_postgres_connection_sql" {
-  description = "SQL queries to create the PostgreSQL connections using the listener port. Run these queries after creating the VPC endpoint service. If you have multiple RDS instances, run these queries for each instance."
+# Generates SQL queries to create the database connections using the listener port
+output "mz_rds_database_connection_sql" {
+  description = "SQL queries to create the database connections using the listener port. Run these queries after creating the VPC endpoint service. If you have multiple RDS instances, run these queries for each instance."
   value = { for inst in var.mz_rds_instance_details : inst.name => <<EOF
     -- Create a secret for the password for ${inst.name}
-    CREATE SECRET ${inst.name}_pgpass AS 'YOUR_PG_PASSWORD_FOR_${inst.name}';
+    CREATE SECRET "${inst.name}_dbpass" AS 'YOUR_DB_PASSWORD_FOR_${inst.name}';
 
     -- Create the connection to the RDS instance using the listener port
-    CREATE CONNECTION ${inst.name}_pg_conn TO POSTGRES (
+    CREATE CONNECTION "${inst.name}_db_conn" TO ${
+      contains(["mysql", "mariadb", "aurora-mysql"], data.aws_db_instance.mz_rds_instance[inst.name].engine) ? "MYSQL" :
+      contains(["postgres", "aurora-postgresql"], data.aws_db_instance.mz_rds_instance[inst.name].engine) ? "POSTGRES" :
+      upper(data.aws_db_instance.mz_rds_instance[inst.name].engine)
+    } (
         HOST '${data.aws_db_instance.mz_rds_instance[inst.name].address}',
         PORT ${inst.listener_port},
-        DATABASE postgres,
-        USER postgres,
-        PASSWORD SECRET ${inst.name}_pgpass,
+        ${contains(["postgres", "aurora-postgresql"], data.aws_db_instance.mz_rds_instance[inst.name].engine) ? 
+          "DATABASE ${data.aws_db_instance.mz_rds_instance[inst.name].db_name}," : ""}
+        USER ${data.aws_db_instance.mz_rds_instance[inst.name].master_username},
+        PASSWORD SECRET "${inst.name}_dbpass",
         AWS PRIVATELINK privatelink_svc
     );
 EOF
