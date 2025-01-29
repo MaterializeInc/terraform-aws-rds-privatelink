@@ -42,3 +42,12 @@ variable "cross_zone_load_balancing" {
   type        = bool
   default     = true
 }
+
+# For cross-region access, add the regions to the list where you want to connect to your RDS cluster from.
+# For example, the region where your Materialize environment is deployed.
+# Empty list means only same-region access is allowed.
+variable "mz_supported_regions" {
+  description = "The set of regions that will be allowed to create a privatelink connection to the RDS cluster."
+  type        = list(string)
+  default     = []
+}

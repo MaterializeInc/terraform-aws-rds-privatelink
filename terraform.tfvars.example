@@ -1,6 +1,3 @@
-# Provider environment variables
-aws_region = "us-east-1"
-
 # The name of the existing RDS instances
 mz_rds_instance_details = [
   { name = "instance1", listener_port = 5001 },
@@ -9,3 +6,7 @@ mz_rds_instance_details = [
 
 # The VPC ID of the existing RDS instance
 mz_rds_vpc_id =
+
+# For cross-region access, add the regions to the list where you want to connect to your MSK cluster from.
+# For example, the region where your Materialize environment is deployed.
+mz_supported_regions = []

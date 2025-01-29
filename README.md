@@ -27,6 +27,10 @@ The module creates the following resources:
 - Review this module with your Cloud Security team to ensure that it meets your security requirements.
 - Finally, after the Terraform module has been applied, you will need to make sure that the Target Groups health checks are passing. As the NLB does not have security groups, you will need to make sure that the NLB is able to reach the RDS instances by allowing the subnet CIDR blocks in the security groups of the RDS instances.
 
+- Cross-region connections:
+    To connect to an AWS PrivateLink endpoint service in a different region to the one where your Materialize environment is deployed, you need to set the `mz_supported_regions` variable to include the region where the Materialize instance is deployed.
+    For same-region connections, you can leave the `mz_supported_regions` variable empty.
+
 To override the default AWS provider variables, you can export the following environment variables:
 
 ```bash
@@ -52,6 +56,7 @@ cp terraform.tfvars.example terraform.tfvars
 | `mz_acceptance_required`    | Whether or not to require manual acceptance of new connections | bool | `true` | no |
 | `schedule_expression`       | [The scheduling expression](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_event_rule#schedule_expression). For example, `cron(0 20 * * ? *)` | string | `'rate(5 minutes)'` | no |
 | `cross_zone_load_balancing` | Enables cross zone load balancing for the NLB | bool | `false` | no |
+| `mz_supported_regions`      | Only required for cross-region connections. The regions where the Materialize instance is deployed | list | `["us-east-1"]` | no |
 
 ### Apply the Terraform Module
 

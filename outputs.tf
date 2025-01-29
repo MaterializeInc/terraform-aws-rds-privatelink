@@ -5,7 +5,7 @@ output "mz_rds_private_link_endpoint_sql" {
     -- Create the PrivateLink endpoint in Materialize
     CREATE CONNECTION privatelink_svc TO AWS PRIVATELINK (
         SERVICE NAME '${aws_vpc_endpoint_service.mz_rds_lb_endpoint_service.service_name}',
-        AVAILABILITY ZONES (${join(", ", [for s in data.aws_subnet.mz_rds_subnet : format("%q", s.availability_zone_id)])})
+        AVAILABILITY ZONES (${length(var.mz_supported_regions) > 0 ? "" : join(", ", [for s in data.aws_subnet.mz_rds_subnet : format("%q", s.availability_zone_id)])})
     );
 
     -- Get the allowed principals for the VPC endpoint service
@@ -13,6 +13,8 @@ output "mz_rds_private_link_endpoint_sql" {
     FROM mz_aws_privatelink_connections plc
     JOIN mz_connections c ON plc.id = c.id
     WHERE c.name = 'privatelink_svc';
+
+    -- IMPORTANT: Get the allowed principals, then add them to the VPC endpoint service
 EOF
 }
 
