@@ -1,10 +1,3 @@
-# AWS Details
-variable "aws_region" {
-  description = "AWS region"
-  type        = string
-  default     = "us-west-1"
-}
-
 # List of variables that the user would need to change
 
 # The names of the existing RDS instances
@@ -26,6 +19,7 @@ variable "mz_nlb_name" {
 # The VPC ID of the existing RDS instance
 variable "mz_rds_vpc_id" {
   description = "The VPC ID of the existing RDS instance"
+  type        = string
 }
 
 # Endpoint Service Acceptance Required (true/false)
@@ -47,4 +41,13 @@ variable "cross_zone_load_balancing" {
   description = "Enables cross zone load balancing for the NLB"
   type        = bool
   default     = true
+}
+
+# For cross-region access, add the regions to the list where you want to connect to your RDS cluster from.
+# For example, the region where your Materialize environment is deployed.
+# Empty list means only same-region access is allowed.
+variable "mz_supported_regions" {
+  description = "The set of regions that will be allowed to create a privatelink connection to the RDS cluster."
+  type        = list(string)
+  default     = []
 }
