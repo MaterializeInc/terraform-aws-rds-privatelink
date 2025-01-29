@@ -1,10 +1,3 @@
-# AWS Details
-variable "aws_region" {
-  description = "AWS region"
-  type        = string
-  default     = "us-west-1"
-}
-
 # List of variables that the user would need to change
 
 # The names of the existing RDS instances
@@ -26,6 +19,7 @@ variable "mz_nlb_name" {
 # The VPC ID of the existing RDS instance
 variable "mz_rds_vpc_id" {
   description = "The VPC ID of the existing RDS instance"
+  type        = string
 }
 
 # Endpoint Service Acceptance Required (true/false)

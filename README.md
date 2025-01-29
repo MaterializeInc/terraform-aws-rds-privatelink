@@ -32,6 +32,7 @@ To override the default AWS provider variables, you can export the following env
 ```bash
 export AWS_PROFILE=<your_aws_profile> # eg. default
 export AWS_CONFIG_FILE=<your_aws_config_file> # eg. ["~/.aws/config"]
+export AWS_REGION=<your_aws_region> # eg. us-east-1
 ```
 
 ## Usage
@@ -44,13 +45,13 @@ Start by copying the `terraform.tfvars.example` file to `terraform.tfvars` and f
 cp terraform.tfvars.example terraform.tfvars
 ```
 
-| Name | Description | Type | Example | Required |
-|------|-------------|:----:|:-----:|:-----:|
-| mz_rds_instance_names | The name and listener port of the RDS instances | list | `{ name = "instance1", listener_port = 5001 }` | yes |
-| mz_rds_vpc_id | The VPC ID of the RDS instance | string | `'vpc-1234567890abcdef0'` | yes |
-| mz_acceptance_required | Whether or not to require manual acceptance of new connections | bool | `true` | no |
-| schedule_expression | [The scheduling expression](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_event_rule#schedule_expression). For example, `cron(0 20 * * ? *)` | string | `'rate(5 minutes)'` | no |
-| cross_zone_load_balancing | Enables cross zone load balancing for the NLB | bool | `false` | no |
+| Name                        | Description | Type | Example | Required |
+|-----------------------------|-------------|:----:|:-----:|:-----:|
+| `mz_rds_instance_names`     | The name and listener port of the RDS instances | list | `{ name = "instance1", listener_port = 5001 }` | yes |
+| `mz_rds_vpc_id`             | The VPC ID of the RDS instance | string | `'vpc-1234567890abcdef0'` | yes |
+| `mz_acceptance_required`    | Whether or not to require manual acceptance of new connections | bool | `true` | no |
+| `schedule_expression`       | [The scheduling expression](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_event_rule#schedule_expression). For example, `cron(0 20 * * ? *)` | string | `'rate(5 minutes)'` | no |
+| `cross_zone_load_balancing` | Enables cross zone load balancing for the NLB | bool | `false` | no |
 
 ### Apply the Terraform Module
 
