@@ -52,7 +52,8 @@ resource "aws_vpc_endpoint_service" "mz_rds_lb_endpoint_service" {
   acceptance_required        = var.mz_acceptance_required
   network_load_balancer_arns = [aws_lb.mz_rds_lb.arn]
 
-  supported_regions = var.mz_supported_regions
+  # Only set supported_regions for cross-region access; empty list would error
+  supported_regions = length(var.mz_supported_regions) > 0 ? var.mz_supported_regions : null
 
   tags = {
     Name = "mz-rds-lb-endpoint-service"
@@ -128,4 +129,61 @@ resource "aws_lambda_permission" "allow_cloudwatch_to_call_check_rds_ip" {
   function_name = aws_lambda_function.check_rds_ip.function_name
   principal     = "events.amazonaws.com"
   source_arn    = aws_cloudwatch_event_rule.rds_ip_check_rule.arn
+}
+
+# SNS topic for RDS events to trigger Lambda immediately on failover/maintenance
+resource "aws_sns_topic" "rds_events" {
+  name = "${substr(var.mz_nlb_name, 0, 12)}-rds-events"
+}
+
+# Policy allowing RDS to publish to the SNS topic
+resource "aws_sns_topic_policy" "rds_events_policy" {
+  arn = aws_sns_topic.rds_events.arn
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "events.rds.amazonaws.com"
+        }
+        Action   = "sns:Publish"
+        Resource = aws_sns_topic.rds_events.arn
+      }
+    ]
+  })
+}
+
+# RDS event subscription for failover, maintenance, and configuration changes
+resource "aws_db_event_subscription" "rds_events" {
+  name      = "${substr(var.mz_nlb_name, 0, 12)}-rds-events"
+  sns_topic = aws_sns_topic.rds_events.arn
+
+  source_type = "db-instance"
+  source_ids  = [for inst in var.mz_rds_instance_details : inst.name]
+
+  event_categories = [
+    "availability",
+    "failover",
+    "failure",
+    "maintenance",
+    "configuration change",
+    "recovery",
+  ]
+}
+
+# Subscribe Lambda to the SNS topic
+resource "aws_sns_topic_subscription" "lambda_subscription" {
+  topic_arn = aws_sns_topic.rds_events.arn
+  protocol  = "lambda"
+  endpoint  = aws_lambda_function.check_rds_ip.arn
+}
+
+# Allow SNS to invoke the Lambda function
+resource "aws_lambda_permission" "allow_sns_to_call_check_rds_ip" {
+  statement_id  = "AllowExecutionFromSNS"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.check_rds_ip.function_name
+  principal     = "sns.amazonaws.com"
+  source_arn    = aws_sns_topic.rds_events.arn
 }

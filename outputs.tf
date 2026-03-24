@@ -66,3 +66,18 @@ output "mz_rds_dns" {
   description = "The DNS A record set for each RDS instance"
   value       = { for inst in var.mz_rds_instance_details : inst.name => data.dns_a_record_set.rds_ip[inst.name] }
 }
+
+# Lambda function name for testing/invoking
+output "lambda_function_name" {
+  value = aws_lambda_function.check_rds_ip.function_name
+}
+
+# SNS topic ARN for RDS events
+output "sns_topic_arn" {
+  value = aws_sns_topic.rds_events.arn
+}
+
+# VPC endpoint service name
+output "mz_rds_endpoint_service_name" {
+  value = aws_vpc_endpoint_service.mz_rds_lb_endpoint_service.service_name
+}
